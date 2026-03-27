@@ -5,6 +5,7 @@ namespace TypechoPlugin\AlgoliaSearch;
 use Typecho\Plugin\PluginInterface;
 use Typecho\Widget\Helper\Form;
 use Typecho\Widget\Helper\Form\Element\Text;
+use Typecho\Widget\Helper\Form\Element\Password;
 use Widget\Options;
 use Helper;
 
@@ -53,7 +54,7 @@ class Plugin implements PluginInterface {
         $appId = new Text('appId', NULL, '', _t('Application ID'));
         $form->addInput($appId->addRule('required', _t('必须填写 App ID')));
         // API密钥
-        $apiKey = new Text('apiKey', NULL, '', _t('Admin API Key'));
+        $apiKey = new Password('apiKey', NULL, '', _t('Admin API Key'));
         $form->addInput($apiKey->addRule('required', _t('必须填写 Admin API Key')));
         // 索引名称
         $indexName = new Text('indexName', NULL, 'typecho_blog', _t('索引名称'));
@@ -191,7 +192,7 @@ class Plugin implements PluginInterface {
         // 获取当前分页页码
         $currentPage = $archive->request->get('page', 1);
         // 使用系统设定的每页文章数
-        $pageSize = $archive->options->pageSize;
+        $pageSize = $archive->options->pageSize ?? 5;
         // 因为只打算缓存当前页的ids，所以键值要带页码
         $cacheKey = $options->cachePrefix . md5($keywords) . '_p' . $currentPage;
         // 尝试从缓存获取 ID 集合
@@ -207,6 +208,8 @@ class Plugin implements PluginInterface {
             $cids = $cachedData['cids'];
             // 总数
             $totalFound = $cachedData['total'];
+            //
+            var_dump("命中缓存");
         } else {
             // 未命中缓存，则从Algolia云端索引中获取数据
             $algolia = new Algolia($options->appId, $options->apiKey, $options->indexName);
@@ -221,6 +224,7 @@ class Plugin implements PluginInterface {
                 // 将 ID 列表存入缓存，600秒，其实可以永久，因为改文章的时候会触发删除逻辑
                 if ($cache) $cache->set($cacheKey, ['cids' => $cids, 'total' => $totalFound], 600);
             }
+            var_dump("未命中缓存");
         }
         // 执行数据库回表查询（Primary Key 查询，极快）
         if (!empty($cids)) {

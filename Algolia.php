@@ -120,7 +120,7 @@ class Algolia {
             // 设置请求数据
             if ($data) $http->setData(json_encode($data));
             // 发送请求
-            $http->send($url);
+            $http->send($url);;
             // 检查请求是否成功
             return $http->getResponseStatus() >= 200 && $http->getResponseStatus() < 300;
         } catch (\Exception $e) {
