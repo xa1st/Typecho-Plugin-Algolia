@@ -107,12 +107,12 @@ class Action extends Widget implements \Widget\ActionInterface {
         // --- 7. 提交数据并返回响应 ---
         try {
             // 批量推送到 Algolia (减少 HTTP 请求次数)
-            var_dump($algolia->pushAll($postData));
+            if (!$algolia->pushAll($postData)) throw new \Exception($algolia->getError());
             // 返回进度给前端：如果本次获取的数据少于 limit，说明没下文了
             $this->response->throwJson(['finished' => count($posts) < $limit,  'nextOffset' => (int)$offset + (int)$limit]);
         } catch (\Exception $e) {
             // 捕获推送过程中可能出现的网络或 API 错误
-            $this->response->throwJson(['finished' => true, 'error'    => $e->getMessage()]);
+            $this->response->throwJson(['finished' => true, 'error' => $e->getMessage()]);
         }
     }
 }
